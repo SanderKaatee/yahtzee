@@ -8,25 +8,27 @@ let socket = null;
 
 export function getSocket() {
   if (!browser) return null;
-  
+
   if (!socket) {
     // Connect to the same host, /yahtzee namespace
-    const url = import.meta.env.DEV 
+    const isDev = import.meta.env.DEV;
+    const url = isDev
       ? 'http://localhost:3000/yahtzee'
       : '/yahtzee';
-    
+
     socket = io(url, {
+      path: isDev ? '/socket.io/' : '/yahtzee/socket.io/',
       autoConnect: false,
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000
     });
-    
+
     // Connection events
     socket.on('connect', () => {
       console.log('Connected to Yahtzee server');
       connected.set(true);
-      
+
       // Try to reconnect to existing game
       const storedPlayer = localStorage.getItem('yahtzee_player');
       if (storedPlayer) {
@@ -36,45 +38,45 @@ export function getSocket() {
         }
       }
     });
-    
+
     socket.on('disconnect', () => {
       console.log('Disconnected from Yahtzee server');
       connected.set(false);
     });
-    
+
     socket.on('connect_error', (err) => {
       console.error('Connection error:', err);
       error.set('Failed to connect to server');
     });
-    
+
     // Game events
     socket.on('room-list', (rooms) => {
       // Handled by lobby component directly
     });
-    
+
     socket.on('room-created', ({ roomId, playerId }) => {
       player.setId(playerId);
       goto(`/yahtzee/room/${roomId}`);
     });
-    
+
     socket.on('room-joined', ({ roomId, playerId, isSpectator }) => {
       player.setId(playerId);
       goto(`/yahtzee/room/${roomId}`);
     });
-    
+
     socket.on('room-state', (state) => {
       room.set(state);
     });
-    
+
     socket.on('reconnected', ({ roomId, playerId }) => {
       console.log('Reconnected to room:', roomId);
       goto(`/yahtzee/room/${roomId}`);
     });
-    
+
     socket.on('player-kicked', ({ playerId }) => {
       let currentPlayerId;
       player.subscribe(p => currentPlayerId = p.id)();
-      
+
       if (playerId === currentPlayerId) {
         player.setId(null);
         room.set(null);
@@ -82,12 +84,12 @@ export function getSocket() {
         goto('/yahtzee/lobby');
       }
     });
-    
+
     socket.on('error', ({ message }) => {
       error.set(message);
     });
   }
-  
+
   return socket;
 }
 
