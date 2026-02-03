@@ -19,7 +19,9 @@ export function getSocket() {
       autoConnect: false,
       reconnection: true,
       reconnectionAttempts: 10,
-      reconnectionDelay: 1000
+      reconnectionDelay: 1000,
+      // In production, use /yahtzee/socket.io as the path so Caddy can route it correctly
+      path: import.meta.env.DEV ? '/socket.io' : '/yahtzee/socket.io'
     });
 
     // Connection events
