@@ -8,6 +8,7 @@ import {
   createInitialGameState, createEmptyScorecard, rollDice,
   calculateScore, isGameOver, determineWinner, canScoreYahtzeeBonus
 } from './logic.js';
+import { generateCheatDice, isCheatEnabled } from './cheat.js';
 
 // Generate short room codes like "ABC123"
 function generateRoomCode() {
@@ -189,7 +190,7 @@ export function registerYahtzeeHandlers(io, socket) {
   });
 
   // Roll dice
-  socket.on('roll-dice', ({ roomId, playerId }) => {
+  socket.on('roll-dice', ({ roomId, playerId, cheatTarget }) => {
     const room = getRoom(roomId);
     if (!room || room.status !== 'playing') return;
 
@@ -207,8 +208,16 @@ export function registerYahtzeeHandlers(io, socket) {
       return;
     }
 
-    // Roll the dice
-    gameState.dice = rollDice(gameState.dice, gameState.heldDice);
+    // Check if cheat mode is enabled for this player
+    if (cheatTarget && isCheatEnabled(currentPlayer.name)) {
+      // Generate guaranteed dice for the target category
+      gameState.dice = generateCheatDice(gameState.dice, gameState.heldDice, cheatTarget);
+      console.log(`[Yahtzee] 🎯 Cheat roll for ${currentPlayer.name}: target=${cheatTarget}, dice=${gameState.dice}`);
+    } else {
+      // Normal random roll
+      gameState.dice = rollDice(gameState.dice, gameState.heldDice);
+    }
+
     gameState.rollsLeft--;
     gameState.isRolling = true;
 
