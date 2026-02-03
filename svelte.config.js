@@ -7,10 +7,7 @@ const config = {
   kit: {
     adapter: adapter({
       out: 'build'
-    }),
-    paths: {
-      base: '/yahtzee'
-    }
+    })
   }
 };
 
