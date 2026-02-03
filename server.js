@@ -8,7 +8,6 @@ const app = express();
 const server = createServer(app);
 
 const io = new Server(server, {
-  path: '/yahtzee/socket.io/',
   cors: {
     origin: process.env.NODE_ENV === 'production'
       ? ['https://sanderkaatee.nl']

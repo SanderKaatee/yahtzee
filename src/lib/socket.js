@@ -11,13 +11,11 @@ export function getSocket() {
 
   if (!socket) {
     // Connect to the same host, /yahtzee namespace
-    const isDev = import.meta.env.DEV;
-    const url = isDev
+    const url = import.meta.env.DEV
       ? 'http://localhost:3000/yahtzee'
       : '/yahtzee';
 
     socket = io(url, {
-      path: isDev ? '/socket.io/' : '/yahtzee/socket.io/',
       autoConnect: false,
       reconnection: true,
       reconnectionAttempts: 10,
