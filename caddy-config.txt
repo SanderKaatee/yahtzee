@@ -1,0 +1,81 @@
+# Add this block to your /etc/caddy/Caddyfile
+# This handles the /yahtzee path on sanderkaatee.nl
+
+# Inside your sanderkaatee.nl block, add:
+
+    # Yahtzee game - WebSocket support required
+    @yahtzee {
+        path /yahtzee*
+    }
+    
+    # Handle Socket.io WebSocket connections
+    @yahtzee_socketio {
+        path /yahtzee/socket.io/*
+    }
+    
+    reverse_proxy @yahtzee_socketio localhost:3001 {
+        transport http {
+            read_timeout 0
+            write_timeout 0
+        }
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up Connection {>Connection}
+        header_up Upgrade {>Upgrade}
+    }
+    
+    # Handle regular Yahtzee requests (SvelteKit pages)
+    reverse_proxy @yahtzee localhost:3001 {
+        transport http {
+            read_timeout 60s
+            write_timeout 60s
+        }
+    }
+
+# ============================================
+# FULL EXAMPLE for sanderkaatee.nl
+# ============================================
+
+# sanderkaatee.nl {
+#     encode zstd gzip
+#     
+#     # Yahtzee WebSocket connections
+#     @yahtzee_socketio {
+#         path /yahtzee/socket.io/*
+#     }
+#     reverse_proxy @yahtzee_socketio localhost:3001 {
+#         transport http {
+#             read_timeout 0
+#             write_timeout 0
+#         }
+#         header_up Host {host}
+#         header_up X-Real-IP {remote_host}
+#         header_up X-Forwarded-For {remote_host}
+#         header_up X-Forwarded-Proto {scheme}
+#         header_up Connection {>Connection}
+#         header_up Upgrade {>Upgrade}
+#     }
+#     
+#     # Yahtzee pages
+#     @yahtzee {
+#         path /yahtzee*
+#     }
+#     reverse_proxy @yahtzee localhost:3001
+#     
+#     # Your other routes here...
+#     
+#     # Security headers
+#     header {
+#         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+#         X-Frame-Options "SAMEORIGIN"
+#         X-Content-Type-Options "nosniff"
+#         Referrer-Policy "strict-origin-when-cross-origin"
+#     }
+#     
+#     log {
+#         output file /var/log/caddy/sanderkaatee.log
+#         format json
+#     }
+# }
