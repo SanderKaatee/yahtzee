@@ -15,7 +15,8 @@ const io = new Server(server, {
     methods: ['GET', 'POST']
   },
   pingTimeout: 60000,
-  pingInterval: 25000
+  pingInterval: 25000,
+  path: process.env.NODE_ENV === 'production' ? '/yahtzee/socket.io' : '/socket.io'
 });
 
 // Yahtzee namespace
